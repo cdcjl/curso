@@ -3,7 +3,6 @@ package com.jlcdc.curso.controller;
 import com.jlcdc.curso.model.Usuario;
 import com.jlcdc.curso.service.UsuarioService;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @RestController
@@ -37,8 +36,7 @@ public class UsuarioController {
     }
 
     @PutMapping("/{id}")
-    public Usuario actualizar(@PathVariable Long id,
-                              @RequestBody Usuario usuario) {
+    public Usuario actualizar(@PathVariable Long id, @RequestBody Usuario usuario) {
         return service.actualizar(id, usuario);
     }
 }
