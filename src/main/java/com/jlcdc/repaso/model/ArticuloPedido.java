@@ -1,5 +1,6 @@
 package com.jlcdc.repaso.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -17,6 +18,7 @@ public class ArticuloPedido {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_pedido", insertable = false, updatable = false)
+    @JsonIgnore
     private Pedido pedido;
 
     @Column(name = "cantidad_pedida")
