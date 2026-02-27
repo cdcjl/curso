@@ -1,8 +1,11 @@
 package com.jlcdc.repaso.controller;
 
+import com.jlcdc.repaso.dto.api.ApiResponse;
 import com.jlcdc.repaso.dto.auth.AuthResponse;
 import com.jlcdc.repaso.dto.auth.LoginRequest;
 import com.jlcdc.repaso.service.AuthService;
+import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,7 +22,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public AuthResponse login(@RequestBody LoginRequest request) {
-        return authService.login(request);
+    public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
+        return ResponseEntity.ok(ApiResponse.ok("Login exitoso", authService.login(request)));
     }
 }

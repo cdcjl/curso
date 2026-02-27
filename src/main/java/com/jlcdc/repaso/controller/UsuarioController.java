@@ -1,9 +1,12 @@
 package com.jlcdc.repaso.controller;
 
+import com.jlcdc.repaso.dto.api.ApiResponse;
 import com.jlcdc.repaso.dto.request.UsuarioRequest;
 import com.jlcdc.repaso.dto.response.UsuarioResponse;
 import com.jlcdc.repaso.mapper.UsuarioMapper;
 import com.jlcdc.repaso.service.UsuarioService;
+import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,27 +24,32 @@ public class UsuarioController {
     }
 
     @PostMapping
-    public UsuarioResponse crear(@RequestBody UsuarioRequest request) {
-        return mapper.toResponse(service.crear(mapper.toModel(request)));
+    public ResponseEntity<ApiResponse<UsuarioResponse>> crear(@Valid @RequestBody UsuarioRequest request) {
+        UsuarioResponse response = mapper.toResponse(service.crear(mapper.toModel(request)));
+        return ResponseEntity.ok(ApiResponse.ok("Usuario creado", response));
     }
 
     @GetMapping
-    public List<UsuarioResponse> listar() {
-        return service.listar().stream().map(mapper::toResponse).toList();
+    public ResponseEntity<ApiResponse<List<UsuarioResponse>>> listar() {
+        List<UsuarioResponse> data = service.listar().stream().map(mapper::toResponse).toList();
+        return ResponseEntity.ok(ApiResponse.ok("Listado de usuarios", data));
     }
 
     @GetMapping("/{id}")
-    public UsuarioResponse obtener(@PathVariable Long id) {
-        return mapper.toResponse(service.obtenerPorId(id));
+    public ResponseEntity<ApiResponse<UsuarioResponse>> obtener(@PathVariable Long id) {
+        UsuarioResponse response = mapper.toResponse(service.obtenerPorId(id));
+        return ResponseEntity.ok(ApiResponse.ok("Usuario obtenido", response));
     }
 
     @DeleteMapping("/{id}")
-    public void eliminar(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Void>> eliminar(@PathVariable Long id) {
         service.eliminar(id);
+        return ResponseEntity.ok(ApiResponse.ok("Usuario eliminado", null));
     }
 
     @PutMapping("/{id}")
-    public UsuarioResponse actualizar(@PathVariable Long id, @RequestBody UsuarioRequest request) {
-        return mapper.toResponse(service.actualizar(id, mapper.toModel(request)));
+    public ResponseEntity<ApiResponse<UsuarioResponse>> actualizar(@PathVariable Long id, @Valid @RequestBody UsuarioRequest request) {
+        UsuarioResponse response = mapper.toResponse(service.actualizar(id, mapper.toModel(request)));
+        return ResponseEntity.ok(ApiResponse.ok("Usuario actualizado", response));
     }
 }

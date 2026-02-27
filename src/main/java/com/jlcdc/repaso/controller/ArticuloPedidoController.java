@@ -1,11 +1,12 @@
 package com.jlcdc.repaso.controller;
 
+import com.jlcdc.repaso.dto.api.ApiResponse;
 import com.jlcdc.repaso.dto.request.ArticuloPedidoRequest;
 import com.jlcdc.repaso.dto.response.ArticuloPedidoResponse;
 import com.jlcdc.repaso.model.ArticuloPedidoId;
 import com.jlcdc.repaso.mapper.ArticuloPedidoMapper;
 import com.jlcdc.repaso.service.ArticuloPedidoService;
-import org.springframework.http.HttpStatus;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,32 +25,34 @@ public class ArticuloPedidoController {
     }
 
     @PostMapping
-    public ResponseEntity<ArticuloPedidoResponse> crear(@RequestBody ArticuloPedidoRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toResponse(service.crear(mapper.toModel(request))));
+    public ResponseEntity<ApiResponse<ArticuloPedidoResponse>> crear(@Valid @RequestBody ArticuloPedidoRequest request) {
+        ArticuloPedidoResponse response = mapper.toResponse(service.crear(mapper.toModel(request)));
+        return ResponseEntity.ok(ApiResponse.ok("Articulo de pedido creado", response));
     }
 
     @GetMapping
-    public ResponseEntity<List<ArticuloPedidoResponse>> listar() {
+    public ResponseEntity<ApiResponse<List<ArticuloPedidoResponse>>> listar() {
         List<ArticuloPedidoResponse> articulos = service.listar().stream().map(mapper::toResponse).toList();
-        return ResponseEntity.ok(articulos);
+        return ResponseEntity.ok(ApiResponse.ok("Listado de articulos de pedido", articulos));
     }
 
     @GetMapping("/pedido/{idPedido}")
-    public ResponseEntity<List<ArticuloPedidoResponse>> obtenerPorPedido(@PathVariable Long idPedido) {
+    public ResponseEntity<ApiResponse<List<ArticuloPedidoResponse>>> obtenerPorPedido(@PathVariable Long idPedido) {
         List<ArticuloPedidoResponse> articulos = service.obtenerPorPedido(idPedido).stream().map(mapper::toResponse).toList();
-        return ResponseEntity.ok(articulos);
+        return ResponseEntity.ok(ApiResponse.ok("Articulos de pedido por pedido", articulos));
     }
 
     @PutMapping
-    public ResponseEntity<ArticuloPedidoResponse> actualizar(@RequestBody ArticuloPedidoRequest request) {
+    public ResponseEntity<ApiResponse<ArticuloPedidoResponse>> actualizar(@Valid @RequestBody ArticuloPedidoRequest request) {
         var articuloActualizado = mapper.toModel(request);
-        return ResponseEntity.ok(mapper.toResponse(service.actualizar(articuloActualizado.getId(), articuloActualizado)));
+        ArticuloPedidoResponse response = mapper.toResponse(service.actualizar(articuloActualizado.getId(), articuloActualizado));
+        return ResponseEntity.ok(ApiResponse.ok("Articulo de pedido actualizado", response));
     }
 
     @DeleteMapping
-    public ResponseEntity<Void> eliminar(@RequestParam Long idPedido, @RequestParam Long idArticulo) {
+    public ResponseEntity<ApiResponse<Void>> eliminar(@RequestParam Long idPedido, @RequestParam Long idArticulo) {
         ArticuloPedidoId id = new ArticuloPedidoId(idPedido, idArticulo);
         service.eliminar(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(ApiResponse.ok("Articulo de pedido eliminado", null));
     }
 }

@@ -1,10 +1,11 @@
 package com.jlcdc.repaso.controller;
 
+import com.jlcdc.repaso.dto.api.ApiResponse;
 import com.jlcdc.repaso.dto.request.ClienteRequest;
 import com.jlcdc.repaso.dto.response.ClienteResponse;
 import com.jlcdc.repaso.mapper.ClienteMapper;
 import com.jlcdc.repaso.service.ClienteService;
-import org.springframework.http.HttpStatus;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,29 +24,32 @@ public class ClienteController {
     }
 
     @PostMapping
-    public ResponseEntity<ClienteResponse> crear(@RequestBody ClienteRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toResponse(service.crear(mapper.toModel(request))));
+    public ResponseEntity<ApiResponse<ClienteResponse>> crear(@Valid @RequestBody ClienteRequest request) {
+        ClienteResponse response = mapper.toResponse(service.crear(mapper.toModel(request)));
+        return ResponseEntity.ok(ApiResponse.ok("Cliente creado", response));
     }
 
     @GetMapping
-    public ResponseEntity<List<ClienteResponse>> listar() {
+    public ResponseEntity<ApiResponse<List<ClienteResponse>>> listar() {
         List<ClienteResponse> clientes = service.listar().stream().map(mapper::toResponse).toList();
-        return ResponseEntity.ok(clientes);
+        return ResponseEntity.ok(ApiResponse.ok("Listado de clientes", clientes));
     }
 
     @GetMapping("/{rut}")
-    public ResponseEntity<ClienteResponse> obtenerPorRut(@PathVariable String rut) {
-        return ResponseEntity.ok(mapper.toResponse(service.obtenerPorRut(rut)));
+    public ResponseEntity<ApiResponse<ClienteResponse>> obtenerPorRut(@PathVariable String rut) {
+        ClienteResponse response = mapper.toResponse(service.obtenerPorRut(rut));
+        return ResponseEntity.ok(ApiResponse.ok("Cliente obtenido", response));
     }
 
     @PutMapping("/{rut}")
-    public ResponseEntity<ClienteResponse> actualizar(@PathVariable String rut, @RequestBody ClienteRequest request) {
-        return ResponseEntity.ok(mapper.toResponse(service.actualizar(rut, mapper.toModel(request))));
+    public ResponseEntity<ApiResponse<ClienteResponse>> actualizar(@PathVariable String rut, @Valid @RequestBody ClienteRequest request) {
+        ClienteResponse response = mapper.toResponse(service.actualizar(rut, mapper.toModel(request)));
+        return ResponseEntity.ok(ApiResponse.ok("Cliente actualizado", response));
     }
 
     @DeleteMapping("/{rut}")
-    public ResponseEntity<Void> eliminar(@PathVariable String rut) {
+    public ResponseEntity<ApiResponse<Void>> eliminar(@PathVariable String rut) {
         service.eliminar(rut);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(ApiResponse.ok("Cliente eliminado", null));
     }
 }

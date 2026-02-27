@@ -1,10 +1,11 @@
 package com.jlcdc.repaso.controller;
 
+import com.jlcdc.repaso.dto.api.ApiResponse;
 import com.jlcdc.repaso.dto.request.ArticuloDespachoRequest;
 import com.jlcdc.repaso.dto.response.ArticuloDespachoResponse;
 import com.jlcdc.repaso.mapper.ArticuloDespachoMapper;
 import com.jlcdc.repaso.service.ArticuloDespachoService;
-import org.springframework.http.HttpStatus;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,35 +24,38 @@ public class ArticuloDespachoController {
     }
 
     @PostMapping
-    public ResponseEntity<ArticuloDespachoResponse> crear(@RequestBody ArticuloDespachoRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toResponse(service.crear(mapper.toModel(request))));
+    public ResponseEntity<ApiResponse<ArticuloDespachoResponse>> crear(@Valid @RequestBody ArticuloDespachoRequest request) {
+        ArticuloDespachoResponse response = mapper.toResponse(service.crear(mapper.toModel(request)));
+        return ResponseEntity.ok(ApiResponse.ok("Articulo de despacho creado", response));
     }
 
     @GetMapping
-    public ResponseEntity<List<ArticuloDespachoResponse>> listar() {
+    public ResponseEntity<ApiResponse<List<ArticuloDespachoResponse>>> listar() {
         List<ArticuloDespachoResponse> despachos = service.listar().stream().map(mapper::toResponse).toList();
-        return ResponseEntity.ok(despachos);
+        return ResponseEntity.ok(ApiResponse.ok("Listado de articulos de despacho", despachos));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ArticuloDespachoResponse> obtenerPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(mapper.toResponse(service.obtenerPorId(id)));
+    public ResponseEntity<ApiResponse<ArticuloDespachoResponse>> obtenerPorId(@PathVariable Long id) {
+        ArticuloDespachoResponse response = mapper.toResponse(service.obtenerPorId(id));
+        return ResponseEntity.ok(ApiResponse.ok("Articulo de despacho obtenido", response));
     }
 
     @GetMapping("/pedido/{idPedido}")
-    public ResponseEntity<List<ArticuloDespachoResponse>> obtenerPorPedido(@PathVariable Long idPedido) {
+    public ResponseEntity<ApiResponse<List<ArticuloDespachoResponse>>> obtenerPorPedido(@PathVariable Long idPedido) {
         List<ArticuloDespachoResponse> despachos = service.obtenerPorPedido(idPedido).stream().map(mapper::toResponse).toList();
-        return ResponseEntity.ok(despachos);
+        return ResponseEntity.ok(ApiResponse.ok("Articulos de despacho por pedido", despachos));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ArticuloDespachoResponse> actualizar(@PathVariable Long id, @RequestBody ArticuloDespachoRequest request) {
-        return ResponseEntity.ok(mapper.toResponse(service.actualizar(id, mapper.toModel(request))));
+    public ResponseEntity<ApiResponse<ArticuloDespachoResponse>> actualizar(@PathVariable Long id, @Valid @RequestBody ArticuloDespachoRequest request) {
+        ArticuloDespachoResponse response = mapper.toResponse(service.actualizar(id, mapper.toModel(request)));
+        return ResponseEntity.ok(ApiResponse.ok("Articulo de despacho actualizado", response));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Void>> eliminar(@PathVariable Long id) {
         service.eliminar(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(ApiResponse.ok("Articulo de despacho eliminado", null));
     }
 }
