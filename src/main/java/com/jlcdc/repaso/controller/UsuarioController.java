@@ -1,9 +1,10 @@
 package com.jlcdc.repaso.controller;
 
-import org.springframework.web.bind.annotation.*;
-
-import com.jlcdc.repaso.model.Usuario;
+import com.jlcdc.repaso.dto.request.UsuarioRequest;
+import com.jlcdc.repaso.dto.response.UsuarioResponse;
+import com.jlcdc.repaso.mapper.UsuarioMapper;
 import com.jlcdc.repaso.service.UsuarioService;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -12,24 +13,26 @@ import java.util.List;
 public class UsuarioController {
 
     private final UsuarioService service;
+    private final UsuarioMapper mapper;
 
-    public UsuarioController(UsuarioService service) {
+    public UsuarioController(UsuarioService service, UsuarioMapper mapper) {
         this.service = service;
+        this.mapper = mapper;
     }
 
     @PostMapping
-    public Usuario crear(@RequestBody Usuario usuario) {
-        return service.crear(usuario);
+    public UsuarioResponse crear(@RequestBody UsuarioRequest request) {
+        return mapper.toResponse(service.crear(mapper.toModel(request)));
     }
 
     @GetMapping
-    public List<Usuario> listar() {
-        return service.listar();
+    public List<UsuarioResponse> listar() {
+        return service.listar().stream().map(mapper::toResponse).toList();
     }
 
     @GetMapping("/{id}")
-    public Usuario obtener(@PathVariable Long id) {
-        return service.obtenerPorId(id);
+    public UsuarioResponse obtener(@PathVariable Long id) {
+        return mapper.toResponse(service.obtenerPorId(id));
     }
 
     @DeleteMapping("/{id}")
@@ -38,7 +41,7 @@ public class UsuarioController {
     }
 
     @PutMapping("/{id}")
-    public Usuario actualizar(@PathVariable Long id, @RequestBody Usuario usuario) {
-        return service.actualizar(id, usuario);
+    public UsuarioResponse actualizar(@PathVariable Long id, @RequestBody UsuarioRequest request) {
+        return mapper.toResponse(service.actualizar(id, mapper.toModel(request)));
     }
 }

@@ -1,14 +1,12 @@
 package com.jlcdc.repaso.controller;
 
+import com.jlcdc.repaso.dto.request.PedidoRequest;
+import com.jlcdc.repaso.dto.response.PedidoResponse;
+import com.jlcdc.repaso.mapper.PedidoMapper;
+import com.jlcdc.repaso.service.PedidoService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import com.jlcdc.repaso.dto.PedidoDTO;
-import com.jlcdc.repaso.model.Cliente;
-import com.jlcdc.repaso.model.Pedido;
-import com.jlcdc.repaso.model.Sucursal;
-import com.jlcdc.repaso.service.PedidoService;
 
 import java.util.List;
 
@@ -17,62 +15,43 @@ import java.util.List;
 public class PedidoController {
 
     private final PedidoService service;
+    private final PedidoMapper mapper;
 
-    public PedidoController(PedidoService service) {
+    public PedidoController(PedidoService service, PedidoMapper mapper) {
         this.service = service;
+        this.mapper = mapper;
     }
 
     @PostMapping
-    public ResponseEntity<Pedido> crear(@RequestBody PedidoDTO pedidoDTO) {
-        Pedido pedido = convertirDTO(pedidoDTO);
-        Pedido nuevoPedido = service.crear(pedido);
-        return ResponseEntity.status(HttpStatus.CREATED).body(nuevoPedido);
+    public ResponseEntity<PedidoResponse> crear(@RequestBody PedidoRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toResponse(service.crear(mapper.toModel(request))));
     }
 
     @GetMapping
-    public ResponseEntity<List<Pedido>> listar() {
-        List<Pedido> pedidos = service.listar();
+    public ResponseEntity<List<PedidoResponse>> listar() {
+        List<PedidoResponse> pedidos = service.listar().stream().map(mapper::toResponse).toList();
         return ResponseEntity.ok(pedidos);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Pedido> obtenerPorId(@PathVariable Long id) {
-        Pedido pedido = service.obtenerPorId(id);
-        return ResponseEntity.ok(pedido);
+    public ResponseEntity<PedidoResponse> obtenerPorId(@PathVariable Long id) {
+        return ResponseEntity.ok(mapper.toResponse(service.obtenerPorId(id)));
     }
 
     @GetMapping("/cliente/{rut}")
-    public ResponseEntity<List<Pedido>> obtenerPorClienteRut(@PathVariable String rut) {
-        List<Pedido> pedidos = service.obtenerPorClienteRut(rut);
+    public ResponseEntity<List<PedidoResponse>> obtenerPorClienteRut(@PathVariable String rut) {
+        List<PedidoResponse> pedidos = service.obtenerPorClienteRut(rut).stream().map(mapper::toResponse).toList();
         return ResponseEntity.ok(pedidos);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Pedido> actualizar(@PathVariable Long id, @RequestBody PedidoDTO pedidoDTO) {
-        Pedido pedidoActualizado = convertirDTO(pedidoDTO);
-        Pedido pedidoModificado = service.actualizar(id, pedidoActualizado);
-        return ResponseEntity.ok(pedidoModificado);
+    public ResponseEntity<PedidoResponse> actualizar(@PathVariable Long id, @RequestBody PedidoRequest request) {
+        return ResponseEntity.ok(mapper.toResponse(service.actualizar(id, mapper.toModel(request))));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         service.eliminar(id);
         return ResponseEntity.noContent().build();
-    }
-
-    private Pedido convertirDTO(PedidoDTO dto) {
-        Pedido pedido = new Pedido();
-        pedido.setIdPedido(dto.getIdPedido());
-        
-        Cliente cliente = new Cliente();
-        cliente.setRutCliente(dto.getRutCliente());
-        pedido.setCliente(cliente);
-        
-        Sucursal sucursal = new Sucursal();
-        sucursal.setIdSucursal(dto.getIdSucursal());
-        pedido.setSucursal(sucursal);
-        
-        pedido.setFechaPedido(dto.getFechaPedido());
-        return pedido;
     }
 }

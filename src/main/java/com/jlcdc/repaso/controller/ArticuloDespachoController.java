@@ -1,13 +1,12 @@
 package com.jlcdc.repaso.controller;
 
+import com.jlcdc.repaso.dto.request.ArticuloDespachoRequest;
+import com.jlcdc.repaso.dto.response.ArticuloDespachoResponse;
+import com.jlcdc.repaso.mapper.ArticuloDespachoMapper;
+import com.jlcdc.repaso.service.ArticuloDespachoService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import com.jlcdc.repaso.dto.ArticuloDespachoDTO;
-import com.jlcdc.repaso.model.ArticuloDespacho;
-import com.jlcdc.repaso.model.Pedido;
-import com.jlcdc.repaso.service.ArticuloDespachoService;
 
 import java.util.List;
 
@@ -16,62 +15,43 @@ import java.util.List;
 public class ArticuloDespachoController {
 
     private final ArticuloDespachoService service;
+    private final ArticuloDespachoMapper mapper;
 
-    public ArticuloDespachoController(ArticuloDespachoService service) {
+    public ArticuloDespachoController(ArticuloDespachoService service, ArticuloDespachoMapper mapper) {
         this.service = service;
+        this.mapper = mapper;
     }
 
     @PostMapping
-    public ResponseEntity<ArticuloDespacho> crear(@RequestBody ArticuloDespachoDTO articuloDespachoDTO) {
-        ArticuloDespacho articuloDespacho = convertirDTO(articuloDespachoDTO);
-        ArticuloDespacho nuevoDespacho = service.crear(articuloDespacho);
-        return ResponseEntity.status(HttpStatus.CREATED).body(nuevoDespacho);
+    public ResponseEntity<ArticuloDespachoResponse> crear(@RequestBody ArticuloDespachoRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toResponse(service.crear(mapper.toModel(request))));
     }
 
     @GetMapping
-    public ResponseEntity<List<ArticuloDespacho>> listar() {
-        List<ArticuloDespacho> despachos = service.listar();
+    public ResponseEntity<List<ArticuloDespachoResponse>> listar() {
+        List<ArticuloDespachoResponse> despachos = service.listar().stream().map(mapper::toResponse).toList();
         return ResponseEntity.ok(despachos);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ArticuloDespacho> obtenerPorId(@PathVariable Long id) {
-        ArticuloDespacho despacho = service.obtenerPorId(id);
-        return ResponseEntity.ok(despacho);
+    public ResponseEntity<ArticuloDespachoResponse> obtenerPorId(@PathVariable Long id) {
+        return ResponseEntity.ok(mapper.toResponse(service.obtenerPorId(id)));
     }
 
     @GetMapping("/pedido/{idPedido}")
-    public ResponseEntity<List<ArticuloDespacho>> obtenerPorPedido(@PathVariable Long idPedido) {
-        List<ArticuloDespacho> despachos = service.obtenerPorPedido(idPedido);
+    public ResponseEntity<List<ArticuloDespachoResponse>> obtenerPorPedido(@PathVariable Long idPedido) {
+        List<ArticuloDespachoResponse> despachos = service.obtenerPorPedido(idPedido).stream().map(mapper::toResponse).toList();
         return ResponseEntity.ok(despachos);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ArticuloDespacho> actualizar(@PathVariable Long id, @RequestBody ArticuloDespachoDTO articuloDespachoDTO) {
-        ArticuloDespacho articuloActualizado = convertirDTO(articuloDespachoDTO);
-        ArticuloDespacho articuloModificado = service.actualizar(id, articuloActualizado);
-        return ResponseEntity.ok(articuloModificado);
+    public ResponseEntity<ArticuloDespachoResponse> actualizar(@PathVariable Long id, @RequestBody ArticuloDespachoRequest request) {
+        return ResponseEntity.ok(mapper.toResponse(service.actualizar(id, mapper.toModel(request))));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         service.eliminar(id);
         return ResponseEntity.noContent().build();
-    }
-
-    private ArticuloDespacho convertirDTO(ArticuloDespachoDTO dto) {
-        ArticuloDespacho articuloDespacho = new ArticuloDespacho();
-        articuloDespacho.setIdDespacho(dto.getIdDespacho());
-        
-        Pedido pedido = new Pedido();
-        pedido.setIdPedido(dto.getIdPedido());
-        articuloDespacho.setPedido(pedido);
-        
-        articuloDespacho.setIdArticulo(dto.getIdArticulo());
-        articuloDespacho.setCodArticulo(dto.getCodArticulo());
-        articuloDespacho.setCantidadDespachada(dto.getCantidadDespachada());
-        articuloDespacho.setMontoDespachado(dto.getMontoDespachado());
-        articuloDespacho.setFechaDespacho(dto.getFechaDespacho());
-        return articuloDespacho;
     }
 }

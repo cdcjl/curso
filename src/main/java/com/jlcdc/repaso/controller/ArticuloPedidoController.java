@@ -1,14 +1,13 @@
 package com.jlcdc.repaso.controller;
 
+import com.jlcdc.repaso.dto.request.ArticuloPedidoRequest;
+import com.jlcdc.repaso.dto.response.ArticuloPedidoResponse;
+import com.jlcdc.repaso.model.ArticuloPedidoId;
+import com.jlcdc.repaso.mapper.ArticuloPedidoMapper;
+import com.jlcdc.repaso.service.ArticuloPedidoService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import com.jlcdc.repaso.dto.ArticuloPedidoDTO;
-import com.jlcdc.repaso.model.ArticuloPedido;
-import com.jlcdc.repaso.model.ArticuloPedidoId;
-import com.jlcdc.repaso.model.Pedido;
-import com.jlcdc.repaso.service.ArticuloPedidoService;
 
 import java.util.List;
 
@@ -17,35 +16,34 @@ import java.util.List;
 public class ArticuloPedidoController {
 
     private final ArticuloPedidoService service;
+    private final ArticuloPedidoMapper mapper;
 
-    public ArticuloPedidoController(ArticuloPedidoService service) {
+    public ArticuloPedidoController(ArticuloPedidoService service, ArticuloPedidoMapper mapper) {
         this.service = service;
+        this.mapper = mapper;
     }
 
     @PostMapping
-    public ResponseEntity<ArticuloPedido> crear(@RequestBody ArticuloPedidoDTO articuloDTO) {
-        ArticuloPedido articuloPedido = convertirDTO(articuloDTO);
-        ArticuloPedido nuevoArticulo = service.crear(articuloPedido);
-        return ResponseEntity.status(HttpStatus.CREATED).body(nuevoArticulo);
+    public ResponseEntity<ArticuloPedidoResponse> crear(@RequestBody ArticuloPedidoRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toResponse(service.crear(mapper.toModel(request))));
     }
 
     @GetMapping
-    public ResponseEntity<List<ArticuloPedido>> listar() {
-        List<ArticuloPedido> articulos = service.listar();
+    public ResponseEntity<List<ArticuloPedidoResponse>> listar() {
+        List<ArticuloPedidoResponse> articulos = service.listar().stream().map(mapper::toResponse).toList();
         return ResponseEntity.ok(articulos);
     }
 
     @GetMapping("/pedido/{idPedido}")
-    public ResponseEntity<List<ArticuloPedido>> obtenerPorPedido(@PathVariable Long idPedido) {
-        List<ArticuloPedido> articulos = service.obtenerPorPedido(idPedido);
+    public ResponseEntity<List<ArticuloPedidoResponse>> obtenerPorPedido(@PathVariable Long idPedido) {
+        List<ArticuloPedidoResponse> articulos = service.obtenerPorPedido(idPedido).stream().map(mapper::toResponse).toList();
         return ResponseEntity.ok(articulos);
     }
 
     @PutMapping
-    public ResponseEntity<ArticuloPedido> actualizar(@RequestBody ArticuloPedidoDTO articuloDTO) {
-        ArticuloPedido articuloActualizado = convertirDTO(articuloDTO);
-        ArticuloPedido articuloModificado = service.actualizar(articuloActualizado.getId(), articuloActualizado);
-        return ResponseEntity.ok(articuloModificado);
+    public ResponseEntity<ArticuloPedidoResponse> actualizar(@RequestBody ArticuloPedidoRequest request) {
+        var articuloActualizado = mapper.toModel(request);
+        return ResponseEntity.ok(mapper.toResponse(service.actualizar(articuloActualizado.getId(), articuloActualizado)));
     }
 
     @DeleteMapping
@@ -53,18 +51,5 @@ public class ArticuloPedidoController {
         ArticuloPedidoId id = new ArticuloPedidoId(idPedido, idArticulo);
         service.eliminar(id);
         return ResponseEntity.noContent().build();
-    }
-
-    private ArticuloPedido convertirDTO(ArticuloPedidoDTO dto) {
-        ArticuloPedido articuloPedido = new ArticuloPedido();
-        articuloPedido.setId(new ArticuloPedidoId(dto.getIdPedido(), dto.getIdArticulo()));
-        
-        Pedido pedido = new Pedido();
-        pedido.setIdPedido(dto.getIdPedido());
-        articuloPedido.setPedido(pedido);
-        
-        articuloPedido.setCantidadPedida(dto.getCantidadPedida());
-        articuloPedido.setPrecioUnitario(dto.getPrecioUnitario());
-        return articuloPedido;
     }
 }

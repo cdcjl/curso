@@ -1,12 +1,12 @@
 package com.jlcdc.repaso.controller;
 
+import com.jlcdc.repaso.dto.request.ClienteRequest;
+import com.jlcdc.repaso.dto.response.ClienteResponse;
+import com.jlcdc.repaso.mapper.ClienteMapper;
+import com.jlcdc.repaso.service.ClienteService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import com.jlcdc.repaso.dto.ClienteDTO;
-import com.jlcdc.repaso.model.Cliente;
-import com.jlcdc.repaso.service.ClienteService;
 
 import java.util.List;
 
@@ -15,49 +15,37 @@ import java.util.List;
 public class ClienteController {
 
     private final ClienteService service;
+    private final ClienteMapper mapper;
 
-    public ClienteController(ClienteService service) {
+    public ClienteController(ClienteService service, ClienteMapper mapper) {
         this.service = service;
+        this.mapper = mapper;
     }
 
     @PostMapping
-    public ResponseEntity<Cliente> crear(@RequestBody ClienteDTO clienteDTO) {
-        Cliente cliente = convertirDTO(clienteDTO);
-        Cliente nuevoCliente = service.crear(cliente);
-        return ResponseEntity.status(HttpStatus.CREATED).body(nuevoCliente);
+    public ResponseEntity<ClienteResponse> crear(@RequestBody ClienteRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toResponse(service.crear(mapper.toModel(request))));
     }
 
     @GetMapping
-    public ResponseEntity<List<Cliente>> listar() {
-        List<Cliente> clientes = service.listar();
+    public ResponseEntity<List<ClienteResponse>> listar() {
+        List<ClienteResponse> clientes = service.listar().stream().map(mapper::toResponse).toList();
         return ResponseEntity.ok(clientes);
     }
 
     @GetMapping("/{rut}")
-    public ResponseEntity<Cliente> obtenerPorRut(@PathVariable String rut) {
-        Cliente cliente = service.obtenerPorRut(rut);
-        return ResponseEntity.ok(cliente);
+    public ResponseEntity<ClienteResponse> obtenerPorRut(@PathVariable String rut) {
+        return ResponseEntity.ok(mapper.toResponse(service.obtenerPorRut(rut)));
     }
 
     @PutMapping("/{rut}")
-    public ResponseEntity<Cliente> actualizar(@PathVariable String rut, @RequestBody ClienteDTO clienteDTO) {
-        Cliente clienteActualizado = convertirDTO(clienteDTO);
-        Cliente clienteModificado = service.actualizar(rut, clienteActualizado);
-        return ResponseEntity.ok(clienteModificado);
+    public ResponseEntity<ClienteResponse> actualizar(@PathVariable String rut, @RequestBody ClienteRequest request) {
+        return ResponseEntity.ok(mapper.toResponse(service.actualizar(rut, mapper.toModel(request))));
     }
 
     @DeleteMapping("/{rut}")
     public ResponseEntity<Void> eliminar(@PathVariable String rut) {
         service.eliminar(rut);
         return ResponseEntity.noContent().build();
-    }
-
-    private Cliente convertirDTO(ClienteDTO dto) {
-        Cliente cliente = new Cliente();
-        cliente.setRutCliente(dto.getRutCliente());
-        cliente.setNombreCliente(dto.getNombreCliente());
-        cliente.setDireccionCliente(dto.getDireccionCliente());
-        cliente.setTelefonoCliente(dto.getTelefonoCliente());
-        return cliente;
     }
 }
